@@ -1,15 +1,33 @@
 #include <stdio.h>
-int main() {
-  FILE *file;
-  int i = 0;
-  char x[10000];
-  file = fopen("printCode.c", "r");
-  while ((i < 9999) && (x[i] != EOF)) {
-    x[i] = fgetc(file);
-    i++;
+#include <string.h>
+#define STR_LEN 1000
+int main(int argc, char const *argv[]) {
+  if (argc > 2) {
+    puts("Format: program.exe file");
+  } else if (argc == 2) {
+    FILE *file;
+    char x[STR_LEN];
+    if ((file = fopen(argv[1], "r")) == NULL) {
+      printf("%s could not be opened", argv[1]);
+    }
+    while (!feof(file)) {
+      fgets(x, STR_LEN, file);
+      x[strcspn(x, "\n")] = '\0';
+      puts(x);
+    }
+    fclose(file);
+  } else {
+    FILE *file;
+    char x[STR_LEN];
+    if ((file = fopen("printCode.c", "r")) == NULL) {
+      printf("%s could not be opened", argv[1]);
+    }
+    while (!feof(file)) {
+      fgets(x, STR_LEN, file);
+      x[strcspn(x, "\n")] = '\0';
+      puts(x);
+    }
+    fclose(file);
   }
-  fclose(file);
-  x[i] = '\0';
-  printf("%s\n", x);
   return 0;
 }

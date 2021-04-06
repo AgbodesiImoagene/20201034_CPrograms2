@@ -33,7 +33,7 @@ int main(void) {
     FILE *fp2 = fopen("customers2.txt", "w"); //File pointer declaration of file to be written to
 
     while (!feof(fp)) { //Read values until the end of the first txt file and print them to the second txt file
-      fscanf(fp, "%s %s %d %d %d", &city, &name, &num, &age, &consent);
+      fscanf(fp, "%s %s %d %d %d", city, name, &num, &age, &consent);
 
       if (consent == 1) { //Check for people who agree to share data
         sum += age; //Add age to sum
