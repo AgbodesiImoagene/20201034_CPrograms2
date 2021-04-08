@@ -1,7 +1,7 @@
 /*
  * COMP10120_8A.c
  * Agbodesi Imoagene 03/04/21
- * A C Program which, usung structures, can fill and initialise the structures with user data (read from the attached
+ * A C Program which, using structures, can fill and initialise the structures with user data (read from the attached
  * files: towns.txt and counties.txt - you must click into the question to see the attached files) and then print out
  * the name, population, county’s longName, county’s shortName and the county’s population for each of the 5 town records
  * by using struct member reference notation.
@@ -74,6 +74,6 @@ int main(void) {
   free(temp.longName);
 
   fclose(fp1);
-  
+
   return 0;
 }

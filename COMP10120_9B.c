@@ -1,3 +1,13 @@
+/*
+ * COMP10120_9B.c
+ * Agbodesi Imoagene 08/04/21
+ * A a new function that replaces a character in a linked list with another
+ * character. The function takes three arguments – the list, the character
+ * to be replaced and the new character. The function prints the elements
+ * of the old list and then the new list to reflect the changes.It uses a
+ * menu-driven system to demonstrate the functionality.
+ */
+
 /*  Operating and maintaining a linked list */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,29 +25,35 @@ typedef ListNode *ListNodePtr; /* synonym for ListNode* */
 /* prototypes */
 void insert( ListNodePtr *sPtr, char value );
 char deletea( ListNodePtr *sPtr, char value );
-char replace( ListNodePtr *sPtr, char value, char sub );
+char replace( ListNodePtr sPtr, char value, char sub ); //New function
 int isEmpty( ListNodePtr sPtr );
 void printList( ListNodePtr currentPtr );
-void sortList( ListNodePtr *sPtr );
+void sortList( ListNodePtr *sPtr ); //New function
 void instructions( void );
+
+//Type to fit funtion pointers with different parameters and return types in an arrary
+typedef void (*generic_fp)(void);
 
 int main( void )
 {
     ListNodePtr startPtr = NULL; /* initially there are no nodes */
     int choice; /* user's choice */
     char item; /* char entered by user */
+    generic_fp funct[3] = {(generic_fp)insert, (generic_fp)deletea,
+                           (generic_fp)replace}; //Function pointers for menu-driven functionality by typecasting functions
 
     instructions(); /* display the menu */
     printf( "? " );
     scanf( "%d", &choice );
 
-     /* loop while user does not choose 3 */
+     /* loop while user does not choose 4 */
     while ( choice != 4 ) {
         switch ( choice ) {
             case 1:
                 printf( "Enter a character: " );
                 scanf( "\n%c", &item );
-                insert( &startPtr, item ); /* insert item in list */
+                /* insert item in list */
+                ((void (*)(ListNodePtr *, char)) funct[choice - 1])(&startPtr, item); //Call function from array
                 printList( startPtr );
                 break;
              case 2: /* delete an element */
@@ -46,7 +62,8 @@ int main( void )
                     printf( "Enter character to be deleted: " );
                     scanf( "\n%c", &item );
                     /* if character is found, remove it*/
-                    if ( deletea( &startPtr, item ) ) { /* remove item */
+                    /* remove item */
+                    if ( ((char (*)(ListNodePtr *, char)) funct[choice - 1])(&startPtr, item) ) { //Call function from array
                         printf( "%c deleted.\n", item );
                         printList( startPtr );
                     } /* end if */
@@ -60,23 +77,34 @@ int main( void )
 
                 break;
             case 3:
-                if ( !isEmpty( startPtr ) ) {
-                    char newVal;
+                if ( !isEmpty( startPtr ) ) { //Check that list is not empty
+                    char newVal; //Holds char to replace existing character
+
+                    //Get input from user
                     printf( "Enter character to be replaced: " );
                     scanf( "\n%c", &item );
                     printf( "Enter new character: " );
                     scanf( "\n%c", &newVal );
-                    if ( replace( &startPtr, item, newVal ) ) {
+
+                    //Print old list
+                    puts("This is the old list: ");
+                    printList( startPtr );
+
+                    //Call function from array
+                    if ( ((char (*)(ListNodePtr, char, char)) funct[choice - 1])(startPtr, item, newVal) ) { //Check that item is in list
+                        sortList( &startPtr ); //Sort list
+
+                        //Print new list
                         printf( "%c was replaced with %c.\n", item, newVal );
-                        sortList( &startPtr );
+                        puts("This is the new list: ");
                         printList( startPtr );
-                    }
-                    else {
+                    } /* end if */
+                    else { //Case that item is not found in list
                         printf( "%c not found.\n\n", item );
                     } /* end else */
 
-                }
-                else {
+                } /* end if */
+                else { //Case that list is empty
                     printf( "List is empty.\n\n" );
                 } /* end else */
 
@@ -169,18 +197,19 @@ char deletea( ListNodePtr *sPtr, char value )
      return '\0';
 } /* end function delete */
 
-char replace( ListNodePtr *sPtr, char value, char sub )
+char replace( ListNodePtr sPtr, char value, char sub )
 {
-  int replaced = 0;
-  ListNodePtr newPtr = *sPtr;
-  while (newPtr != NULL) {
-    if (value == newPtr->data) {
-      newPtr->data = sub;
+  int replaced = 0; //Holds 0 or 1 to indicate value is in list
+
+  while (sPtr != NULL) { //Iterate through list
+    if (value == sPtr->data) { //Replace any character == value
+      sPtr->data = sub;
       replaced = 1;
     }
-    newPtr = newPtr->nextPtr;
+    sPtr = sPtr->nextPtr;
   }
-  if (replaced) {
+
+  if (replaced) { //Return value if replacement was done
     return value;
   }
   return '\0';
@@ -215,69 +244,31 @@ void printList( ListNodePtr currentPtr )
 
 void sortList( ListNodePtr *sPtr )
 {
-  ListNodePtr startSwap;
-  ListNodePtr previousPtr = NULL;
-  ListNodePtr currentPtr = *sPtr;
-  ListNodePtr forwardPtr;
+  if ((*sPtr)->nextPtr == NULL) { //Base case for 1 item in list
+    return;
+  }
 
-  while (currentPtr->nextPtr != NULL) {
+  sortList(&((*sPtr)->nextPtr)); //Recursive call to sort list minus first item
 
-    int check = 0;
-    ListNodePtr checkPtr = *sPtr;
-    while (checkPtr->nextPtr != NULL) {
-      if (checkPtr->data > checkPtr->nextPtr->data) {
-        check = 1;
-        break;
-      }
-      checkPtr = checkPtr->nextPtr;
+  if ((*sPtr)->data > (*sPtr)->nextPtr->data) { //Case current character is larger than next
+    //Declare pointers to traverse list
+    ListNodePtr prevPtr;
+    ListNodePtr currPtr = *sPtr;
+
+    //Shift current character and set second item as start of list
+    *sPtr = currPtr->nextPtr;
+    currPtr->nextPtr = currPtr->nextPtr->nextPtr;
+    (*sPtr)->nextPtr = currPtr;
+    prevPtr = *sPtr;
+
+    //Iterate through list until 1 item remains or charcter is in correct position
+    while (currPtr->nextPtr != NULL && currPtr->data > currPtr->nextPtr->data) {
+      //Shift item down list by re-assigning item next-pointers
+      ListNodePtr temp = currPtr->nextPtr;
+      currPtr->nextPtr = currPtr->nextPtr->nextPtr;
+      temp->nextPtr = currPtr;
+      prevPtr->nextPtr = temp;
+      prevPtr = prevPtr->nextPtr;
     }
-    if (check == 0) {
-      break;
-    }
-
-    forwardPtr = currentPtr->nextPtr;
-    if (currentPtr->data >= currentPtr->nextPtr->data) {
-      ListNodePtr previousPtr2 = previousPtr;
-      ListNodePtr currentPtr2 = currentPtr;
-      startSwap = *sPtr;
-
-      while (currentPtr2->nextPtr != NULL && currentPtr2->data >= currentPtr2->nextPtr->data) {
-
-        if (previousPtr2 == NULL) {
-          ListNodePtr temp = currentPtr2->nextPtr;
-          currentPtr2->nextPtr = currentPtr2->nextPtr->nextPtr;
-          temp->nextPtr = currentPtr2;
-          startSwap = temp;
-          previousPtr2 = temp;
-        } else {
-          ListNodePtr temp = currentPtr2->nextPtr;
-          currentPtr2->nextPtr = currentPtr2->nextPtr->nextPtr;
-          temp->nextPtr = currentPtr2;
-          previousPtr2->nextPtr = temp;
-          previousPtr2 = previousPtr2->nextPtr;
-        }
-
-        int check = 0;
-        ListNodePtr checkPtr = *sPtr;
-        while (checkPtr->nextPtr != NULL) {
-          if (checkPtr->data > checkPtr->nextPtr->data) {
-            check = 1;
-            break;
-          }
-          checkPtr = checkPtr->nextPtr;
-        }
-        if (check == 0) {
-          break;
-        }
-
-
-      }
-
-      if (startSwap != *sPtr) {
-        *sPtr = startSwap;
-      }
-    }
-    previousPtr = currentPtr;
-    currentPtr = forwardPtr;
   }
 }
